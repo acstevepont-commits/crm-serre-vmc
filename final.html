@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#3B6D11">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Serre VMC">
+<title>CRM Serre VMC</title>
+<link rel="manifest" href="data:application/json,{%22name%22:%22CRM%20Serre%20VMC%22,%22short_name%22:%22Serre%20VMC%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22%23ffffff%22,%22theme_color%22:%22%233B6D11%22}">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--green:#3B6D11;--green-light:#EAF3DE;--green-mid:#639922;--amber:#854F0B;--amber-light:#FAEEDA;--amber-mid:#BA7517;--teal:#0F6E56;--teal-light:#E1F5EE;--teal-mid:#1D9E75;--blue:#185FA5;--blue-light:#E6F1FB;--blue-mid:#378ADD;--purple:#534AB7;--purple-light:#EEEDFE;--red:#c0392b;--red-light:#fdf0f0;--bg:#f8f8f6;--surface:#ffffff;--surface2:#f3f2ef;--border:#e0ddd6;--border2:#c8c5bc;--text:#1a1a18;--text2:#5a5955;--text3:#9a9890;--radius:10px;--radius-sm:6px;--radius-lg:14px}
+@media(prefers-color-scheme:dark){:root{--bg:#1a1a18;--surface:#242422;--surface2:#2e2e2b;--border:#3a3a36;--border2:#4a4a46;--text:#f0ede8;--text2:#a0a09a;--text3:#6a6a64;--green-light:#1a2e0a;--amber-light:#2e1f06;--blue-light:#0a1e35;--purple-light:#1a1835;--teal-light:#0a2018;--green:#7abf3a;--amber:#e8a030;--blue:#5ba0e0;--purple:#9990e8;--teal:#30c090}}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:14px;color:var(--text);background:var(--bg);min-height:100vh}
+#app{max-width:960px;margin:0 auto;padding:12px 12px 80px}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:8px;flex-wrap:wrap}
+.topbar-title{font-size:18px;font-weight:600}
+.topbar-right{display:flex;gap:8px}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);display:flex;z-index:50;padding-bottom:env(safe-area-inset-bottom)}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 4px;gap:3px;cursor:pointer;background:none;border:none;color:var(--text2);font-size:10px;font-family:inherit}
+.nav-btn.active{color:var(--green)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:14px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px}
+.stat-card.highlight{background:var(--green-light);border-color:#C0DD97}
+.stat-card.warn{background:var(--amber-light);border-color:#E6C67E}
+.stat-label{font-size:11px;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.3px;font-weight:600}
+.stat-val{font-size:18px;font-weight:700;line-height:1.1}
+.stat-sub{font-size:11px;color:var(--text3);margin-top:4px}
+.badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:600}
+.badge.lead{background:var(--surface2);color:var(--text2)}
+.badge.qualifie{background:var(--amber-light);color:var(--amber)}
+.badge.dossier{background:var(--blue-light);color:var(--blue)}
+.badge.paye{background:var(--green-light);color:var(--green)}
+.badge.th117{background:var(--teal-light);color:var(--teal)}
+.badge.th119{background:var(--purple-light);color:var(--purple)}
+.badge.chauffe{background:#FAECE7;color:#993C1D}
+.badge.froide{background:var(--blue-light);color:var(--blue)}
+.badge.neuve{background:var(--green-light);color:var(--green)}
+.badge.yoss{background:var(--amber-light);color:var(--amber)}
+.badge.asso{background:var(--purple-light);color:var(--purple)}
+.badge.yes{background:var(--green-light);color:var(--green)}
+.badge.no{background:var(--red-light);color:var(--red)}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;font-size:13px;border:1px solid var(--border2);border-radius:var(--radius-sm);cursor:pointer;background:var(--surface);color:var(--text);font-family:inherit;font-weight:500}
+.btn.primary{background:var(--green);border-color:var(--green);color:#fff}
+.btn.sm{padding:4px 9px;font-size:11px}
+.btn.danger{color:#fff;background:var(--red);border-color:var(--red)}
+.btn.danger:hover{background:#a82a1e}
+.table-wrap{border:1px solid var(--border);border-radius:var(--radius-lg);overflow:auto;background:var(--surface)}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:900px}
+th{background:var(--surface2);padding:9px 10px;text-align:left;font-weight:600;font-size:11px;color:var(--text2);border-bottom:1px solid var(--border);cursor:pointer;white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:hover td{background:var(--surface2)}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.filters input,.filters select{font-size:12px;padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-family:inherit}
+.kanban{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+@media(max-width:600px){.kanban{grid-template-columns:repeat(2,1fr)}}
+.kanban-col{background:var(--surface2);border-radius:var(--radius);padding:10px;min-height:180px}
+.kanban-col-hd{font-size:11px;font-weight:600;color:var(--text2);display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+.kanban-count{background:var(--surface);border:1px solid var(--border);border-radius:99px;padding:1px 7px;font-size:10px}
+.k-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 10px;margin-bottom:6px;cursor:pointer}
+.k-card:hover{border-color:var(--green)}
+.k-card-name{font-size:12px;font-weight:600;margin-bottom:5px}
+.k-card-meta{font-size:11px;color:var(--text2);display:flex;gap:4px;flex-wrap:wrap;margin-bottom:3px}
+.k-money{font-size:11px;margin-top:4px;display:flex;justify-content:space-between;gap:4px}
+.k-money .total{color:var(--green);font-weight:600}
+.k-money .reste{color:var(--amber);font-weight:600}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.bar-label{width:90px;color:var(--text2);flex-shrink:0;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-track{flex:1;height:8px;background:var(--surface2);border-radius:99px;overflow:hidden;border:1px solid var(--border)}
+.bar-fill{height:100%;border-radius:99px}
+.bar-val{width:80px;text-align:right;font-weight:600;font-size:11px;flex-shrink:0}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:flex-start;justify-content:center;padding:20px 12px;overflow-y:auto}
+.modal{background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border);padding:20px;width:100%;max-width:580px}
+.modal h3{font-size:16px;font-weight:600;margin-bottom:16px}
+.form-section{margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.form-section:last-of-type{border-bottom:none}
+.form-section-title{font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:480px){.form-grid{grid-template-columns:1fr}}
+.fg{display:flex;flex-direction:column;gap:4px}
+.fg.full{grid-column:1/-1}
+.fg label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.4px}
+.fg input,.fg select,.fg textarea{font-size:13px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-family:inherit}
+.fg textarea{resize:vertical;min-height:60px}
+.fg input[type="number"]{text-align:right}
+.money-summary{background:var(--green-light);border:1px solid #C0DD97;border-radius:var(--radius-sm);padding:12px 14px;display:flex;justify-content:space-around;gap:10px;flex-wrap:wrap;text-align:center}
+.money-summary-item{flex:1;min-width:90px}
+.money-summary-label{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
+.money-summary-val{font-size:15px;font-weight:700;color:var(--green)}
+.money-summary-val.warn{color:var(--amber)}
+.money-summary-val.zero{color:var(--text3)}
+.modal-footer{display:flex;justify-content:space-between;gap:8px;margin-top:18px;flex-wrap:wrap;align-items:center}
+.modal-footer-right{display:flex;gap:8px;flex-wrap:wrap}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:10px 18px;border-radius:var(--radius);font-size:13px;font-weight:500;z-index:300;animation:fadeInUp .25s ease}
+@keyframes fadeInUp{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+@media(max-width:500px){.charts-row{grid-template-columns:1fr}}
+.count-chip{font-size:11px;color:var(--text2);background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:2px 9px}
+.empty{text-align:center;padding:32px;color:var(--text3);font-size:13px}
+.install-banner{background:var(--green-light);border:1px solid #C0DD97;border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.install-banner p{font-size:12px;color:var(--green);font-weight:500}
+.install-banner button{background:var(--green);color:#fff;border:none;border-radius:var(--radius-sm);padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
+.radio-group{display:flex;gap:6px}
+.radio-opt{flex:1;padding:7px;border:1px solid var(--border);border-radius:var(--radius-sm);text-align:center;cursor:pointer;font-size:12px;background:var(--surface);color:var(--text);transition:all .15s}
+.radio-opt.selected{background:var(--green);border-color:var(--green);color:#fff;font-weight:600}
+.dates-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media(max-width:480px){.dates-grid{grid-template-columns:1fr}}
+.date-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px}
+.date-card label{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:4px;font-weight:600}
+.date-card input{width:100%;font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-family:inherit}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="topbar">
+    <div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:2px">🌿 Serre VMC</div>
+      <div class="topbar-title">CRM AGRI-TH-117 / 119</div>
+    </div>
+    <div class="topbar-right">
+      <button class="btn sm" onclick="exportCSV()">📥 Export CSV</button>
+      <button class="btn primary" onclick="openModal()">+ Lead</button>
+    </div>
+  </div>
+  <div id="install-banner" style="display:none" class="install-banner">
+    <p>📱 Installer l'appli sur ton téléphone / PC</p>
+    <button onclick="installApp()">Installer</button>
+  </div>
+  <div id="view-dashboard"></div>
+  <div id="view-liste" style="display:none"></div>
+  <div id="view-kanban" style="display:none"></div>
+  <div id="view-finance" style="display:none"></div>
+  <div id="modal-root"></div>
+  <div id="toast-root"></div>
+</div>
+<nav class="bottom-nav">
+  <button class="nav-btn active" id="nav-dashboard" onclick="switchTab('dashboard')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard
+  </button>
+  <button class="nav-btn" id="nav-liste" onclick="switchTab('liste')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Liste
+  </button>
+  <button class="nav-btn" id="nav-kanban" onclick="switchTab('kanban')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="12" rx="1"/><rect x="17" y="3" width="5" height="15" rx="1"/></svg>Kanban
+  </button>
+  <button class="nav-btn" id="nav-finance" onclick="switchTab('finance')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Finance
+  </button>
+</nav>
+<script>
+const STATUTS = ['lead','qualifie','dossier','paye'];
+const STATUT_LABELS = {lead:'Lead',qualifie:'Qualifié',dossier:'Dossier',paye:'Payé'};
+const DISPOSITIFS = ['AGRI-TH-117','AGRI-TH-119'];
+const TYPES_SERRE = ['chauffée','froide','neuve'];
+const AGENTS = ['Yoss','Associé'];
+const REGIONS = ['PACA','Bretagne','Pays de la Loire','Occitanie','Nouvelle-Aquitaine','Autre'];
+const EQUIPEMENTS = ['Aucun','DESU','VMC','Double paroi','Autre'];
+
+function defaultLeads() {
+  return [
+    {id:1,nom:'Dupont Jean',tel:'06 12 34 56 78',email:'dupont@ferme.fr',siret:'12345678900011',region:'PACA',surface:2000,hauteur:4.5,electricite:'oui',equipement:'Aucun',type:'chauffée',dispositif:'AGRI-TH-117',statut:'paye',agent:'Yoss',installateur:'SolarSud PACA',montantTotal:12000,montantPaye:12000,dateDevis:'2024-10-15',dateInstallation:'2024-11-10',datePaiement:'2024-11-20',notes:'Dossier validé et payé',date:'2024-11-15'},
+    {id:2,nom:'Martin Pierre',tel:'07 23 45 67 89',email:'martin@agri.fr',siret:'98765432100022',region:'Pays de la Loire',surface:3500,hauteur:5.0,electricite:'oui',equipement:'DESU',type:'neuve',dispositif:'AGRI-TH-119',statut:'dossier',agent:'Associé',installateur:'AgroInstall 44',montantTotal:18000,montantPaye:6000,dateDevis:'2024-11-20',dateInstallation:'2024-12-15',datePaiement:'',notes:'Acompte reçu, reste dû',date:'2024-12-02'},
+    {id:3,nom:'Bernard Claire',tel:'06 34 56 78 90',email:'bernard@serre.fr',siret:'11122233300044',region:'Bretagne',surface:1200,hauteur:3.5,electricite:'non',equipement:'Aucun',type:'froide',dispositif:'AGRI-TH-117',statut:'qualifie',agent:'Yoss',installateur:'',montantTotal:7500,montantPaye:0,dateDevis:'2025-01-05',dateInstallation:'',datePaiement:'',notes:'Devis envoyé, en attente',date:'2025-01-08'},
+    {id:4,nom:'Roux Michel',tel:'06 45 67 89 01',email:'roux@agri.fr',siret:'',region:'PACA',surface:800,hauteur:3.0,electricite:'oui',equipement:'Aucun',type:'chauffée',dispositif:'AGRI-TH-117',statut:'lead',agent:'Associé',installateur:'',montantTotal:0,montantPaye:0,dateDevis:'',dateInstallation:'',datePaiement:'',notes:'Lead Facebook, à rappeler',date:'2025-01-10'}
+  ];
+}
+
+let leads = JSON.parse(localStorage.getItem('crm_serre_v4') || 'null') || defaultLeads();
+let nextId = Math.max(...leads.map(l=>l.id),0)+1;
+let currentTab='dashboard', editId=null, sortCol='date', sortDir=-1;
+let fStatut='', fAgent='', fSearch='', fRegion='', fElec='';
+let deferredInstall=null;
+
+function save(){localStorage.setItem('crm_serre_v4',JSON.stringify(leads))}
+function fmt(n){return new Intl.NumberFormat('fr-FR').format(Math.round(n))}
+function fmtEur(n){return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(Math.round(n||0))}
+
+// CALCULS FINANCIERS
+function reste(l){return Math.max(0,(l.montantTotal||0)-(l.montantPaye||0))}
+function totalDu(){return leads.reduce((s,l)=>s+(l.montantTotal||0),0)}
+function totalPaye(){return leads.reduce((s,l)=>s+(l.montantPaye||0),0)}
+function totalReste(){return leads.reduce((s,l)=>s+reste(l),0)}
+
+function switchTab(t){
+  currentTab=t;
+  ['dashboard','liste','kanban','finance'].forEach(v=>{
+    document.getElementById('view-'+v).style.display=v===t?'':'none';
+    const b=document.getElementById('nav-'+v);
+    if(b)b.classList.toggle('active',v===t);
+  });
+  render();
+}
+
+function bS(s){return'<span class="badge '+s+'">'+(STATUT_LABELS[s]||s)+'</span>'}
+function bD(d){return'<span class="badge '+(d==='AGRI-TH-117'?'th117':'th119')+'">'+d+'</span>'}
+function bT(t){return'<span class="badge '+(t==='chauffée'?'chauffe':t==='froide'?'froide':'neuve')+'">'+t+'</span>'}
+function bA(a){return'<span class="badge '+(a==='Yoss'?'yoss':'asso')+'">'+a+'</span>'}
+function bElec(e){return e==='oui'?'<span class="badge yes">⚡ Oui</span>':e==='non'?'<span class="badge no">✗ Non</span>':'<span class="badge lead">—</span>'}
+
+function render(){
+  if(currentTab==='dashboard')rDB();
+  else if(currentTab==='liste')rListe();
+  else if(currentTab==='kanban')rKanban();
+  else if(currentTab==='finance')rFinance();
+}
+
+function rDB(){
+  const tot=leads.length;
+  const pay=leads.filter(l=>l.statut==='paye');
+  const tDu=totalDu();
+  const tPaye=totalPaye();
+  const tReste=totalReste();
+  const byS={}; STATUTS.forEach(s=>{byS[s]=leads.filter(l=>l.statut===s)});
+  const sMax=Math.max(...leads.map(l=>l.surface),1);
+  
+  document.getElementById('view-dashboard').innerHTML=`
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-label">Leads total</div><div class="stat-val">${tot}</div><div class="stat-sub">${pay.length} payé${pay.length>1?'s':''}</div></div>
+      <div class="stat-card highlight"><div class="stat-label">💰 Total à encaisser</div><div class="stat-val" style="color:var(--green)">${fmtEur(tDu)}</div></div>
+      <div class="stat-card highlight"><div class="stat-label">✅ Déjà encaissé</div><div class="stat-val" style="color:var(--green)">${fmtEur(tPaye)}</div><div class="stat-sub">${tDu?Math.round(tPaye/tDu*100):0}% du total</div></div>
+      <div class="stat-card warn"><div class="stat-label">⏳ Reste à percevoir</div><div class="stat-val" style="color:var(--amber)">${fmtEur(tReste)}</div></div>
+    </div>
+    <div class="charts-row">
+      <div class="card">
+        <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px">Pipeline</div>
+        ${STATUTS.map(s=>`<div class="bar-row"><span class="bar-label">${STATUT_LABELS[s]}</span><div class="bar-track"><div class="bar-fill" style="width:${tot?Math.round(byS[s].length/tot*100):0}%;background:${s==='paye'?'var(--green-mid)':s==='dossier'?'var(--blue-mid)':s==='qualifie'?'var(--amber-mid)':'#888'}"></div></div><span class="bar-val">${byS[s].length} lead${byS[s].length>1?'s':''}</span></div>`).join('')}
+      </div>
+      <div class="card">
+        <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px">CA par statut</div>
+        ${STATUTS.map(s=>{const grp=byS[s];const ca=grp.reduce((sum,l)=>sum+(l.montantTotal||0),0);const maxCa=Math.max(...STATUTS.map(x=>byS[x].reduce((sum,l)=>sum+(l.montantTotal||0),0)),1);return`<div class="bar-row"><span class="bar-label">${STATUT_LABELS[s]}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.round(ca/maxCa*100)}%;background:${s==='paye'?'var(--green-mid)':s==='dossier'?'var(--blue-mid)':s==='qualifie'?'var(--amber-mid)':'#888'}"></div></div><span class="bar-val" style="color:var(--green)">${fmtEur(ca)}</span></div>`}).join('')}
+      </div>
+      <div class="card">
+        <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px">Top surfaces</div>
+        ${leads.slice().sort((a,b)=>b.surface-a.surface).slice(0,5).map(l=>`<div class="bar-row"><span class="bar-label">${l.nom.split(' ')[0]}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.round(l.surface/sMax*100)}%;background:var(--green-mid)"></div></div><span class="bar-val">${fmt(l.surface)} m²</span></div>`).join('')}
+      </div>
+      <div class="card">
+        <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px">Par agent</div>
+        ${AGENTS.map(a=>{const g=leads.filter(l=>l.agent===a);const ca=g.reduce((s,l)=>s+(l.montantTotal||0),0);const maxCa=Math.max(...AGENTS.map(x=>leads.filter(l=>l.agent===x).reduce((s,l)=>s+(l.montantTotal||0),0)),1);return`<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:12px">${bA(a)}<span style="color:var(--green);font-weight:600">${fmtEur(ca)}</span></div><div class="bar-track" style="height:8px"><div class="bar-fill" style="width:${Math.round(ca/maxCa*100)}%;background:${a==='Yoss'?'var(--amber-mid)':'var(--purple)'}"></div></div><div style="font-size:10px;color:var(--text2);margin-top:3px">${g.length} lead${g.length>1?'s':''}</div></div>`}).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function getFilt(){
+  return leads.filter(l=>{
+    if(fStatut && l.statut!==fStatut)return false;
+    if(fAgent && l.agent!==fAgent)return false;
+    if(fRegion && l.region!==fRegion)return false;
+    if(fElec && l.electricite!==fElec)return false;
+    if(fSearch){
+      const q=fSearch.toLowerCase();
+      if(!l.nom.toLowerCase().includes(q) && !(l.email||'').toLowerCase().includes(q) && !(l.siret||'').includes(q))return false;
+    }
+    return true;
+  }).sort((a,b)=>{
+    let av=a[sortCol],bv=b[sortCol];
+    if(['surface','hauteur','montantTotal','montantPaye'].includes(sortCol)){av=+av||0;bv=+bv||0}
+    return av<bv?-sortDir:av>bv?sortDir:0;
+  });
+}
+
+function rListe(){
+  const f=getFilt();
+  document.getElementById('view-liste').innerHTML=`
+    <div class="filters">
+      <input type="search" placeholder="🔍 Nom, email, SIRET..." value="${fSearch}" oninput="fSearch=this.value;rListe()" style="width:160px">
+      <select onchange="fStatut=this.value;rListe()"><option value="">Tous statuts</option>${STATUTS.map(s=>`<option value="${s}" ${fStatut===s?'selected':''}>${STATUT_LABELS[s]}</option>`).join('')}</select>
+      <select onchange="fAgent=this.value;rListe()"><option value="">Tous agents</option>${AGENTS.map(a=>`<option value="${a}" ${fAgent===a?'selected':''}>${a}</option>`).join('')}</select>
+      <select onchange="fRegion=this.value;rListe()"><option value="">Toutes régions</option>${REGIONS.map(r=>`<option value="${r}" ${fRegion===r?'selected':''}>${r}</option>`).join('')}</select>
+      <select onchange="fElec=this.value;rListe()"><option value="">Électricité ?</option><option value="oui" ${fElec==='oui'?'selected':''}>⚡ Oui</option><option value="non" ${fElec==='non'?'selected':''}>✗ Non</option></select>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px">
+      <span class="count-chip">${f.length} résultat${f.length>1?'s':''}</span>
+      <span style="font-size:11px;color:var(--text2)">Total : <strong style="color:var(--green)">${fmtEur(f.reduce((s,l)=>s+(l.montantTotal||0),0))}</strong> · Reste : <strong style="color:var(--amber)">${fmtEur(f.reduce((s,l)=>s+reste(l),0))}</strong></span>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr>
+        <th onclick="sortBy('nom')">Agriculteur ${sortCol==='nom'?(sortDir===1?'↑':'↓'):''}</th>
+        <th>SIRET</th>
+        <th onclick="sortBy('surface')">Surface ${sortCol==='surface'?(sortDir===1?'↑':'↓'):''}</th>
+        <th>Élec</th>
+        <th>Équipt.</th>
+        <th>Dispositif</th>
+        <th>Statut</th>
+        <th>Agent</th>
+        <th onclick="sortBy('montantTotal')">Total € ${sortCol==='montantTotal'?(sortDir===1?'↑':'↓'):''}</th>
+        <th onclick="sortBy('montantPaye')">Payé € ${sortCol==='montantPaye'?(sortDir===1?'↑':'↓'):''}</th>
+        <th>Reste €</th>
+        <th></th>
+      </tr></thead>
+      <tbody>${f.length===0?`<tr><td colspan="12"><div class="empty">Aucun lead trouvé</div></td></tr>`:f.map(l=>{const r=reste(l);return`<tr>
+        <td><div style="font-weight:600;font-size:12px">${l.nom}</div><div style="font-size:10px;color:var(--text2)">${l.tel||''}</div></td>
+        <td style="font-size:11px;color:var(--text2);font-family:monospace">${l.siret||'—'}</td>
+        <td>${fmt(l.surface)} m²</td>
+        <td>${bElec(l.electricite)}</td>
+        <td style="font-size:11px">${l.equipement||'—'}</td>
+        <td>${bD(l.dispositif)}</td>
+        <td>${bS(l.statut)}</td>
+        <td>${bA(l.agent)}</td>
+        <td style="color:var(--green);font-weight:600">${fmtEur(l.montantTotal)}</td>
+        <td style="color:var(--green)">${fmtEur(l.montantPaye)}</td>
+        <td style="color:${r>0?'var(--amber)':'var(--text3)'};font-weight:${r>0?600:400}">${fmtEur(r)}</td>
+        <td><button class="btn sm" onclick="openModal(${l.id})">✎</button></td>
+      </tr>`}).join('')}</tbody>
+    </table></div>
+  `;
+}
+
+function sortBy(c){if(sortCol===c)sortDir*=-1;else{sortCol=c;sortDir=1}rListe()}
+
+function rKanban(){
+  const f=getFilt();
+  document.getElementById('view-kanban').innerHTML=`
+    <div class="filters" style="margin-bottom:12px">
+      <select onchange="fAgent=this.value;rKanban()"><option value="">Tous agents</option>${AGENTS.map(a=>`<option value="${a}" ${fAgent===a?'selected':''}>${a}</option>`).join('')}</select>
+    </div>
+    <div class="kanban">${STATUTS.map(s=>{
+      const cols=f.filter(l=>l.statut===s);
+      const tot=cols.reduce((sum,l)=>sum+(l.montantTotal||0),0);
+      const rst=cols.reduce((sum,l)=>sum+reste(l),0);
+      return `<div class="kanban-col">
+        <div class="kanban-col-hd"><span>${STATUT_LABELS[s]}</span><span class="kanban-count">${cols.length}</span></div>
+        ${cols.length>0?`<div style="font-size:10px;margin-bottom:8px"><div style="display:flex;justify-content:space-between"><span style="color:var(--green);font-weight:600">Total ${fmtEur(tot)}</span></div>${rst>0?`<div style="color:var(--amber);font-weight:600;text-align:right">Reste ${fmtEur(rst)}</div>`:''}</div>`:''}
+        ${cols.length===0?`<div style="font-size:11px;color:var(--text3);text-align:center;padding:20px 0">Vide</div>`:''}
+        ${cols.map(l=>{const r=reste(l);return`<div class="k-card" onclick="openModal(${l.id})">
+          <div class="k-card-name">${l.nom}</div>
+          <div class="k-card-meta">${bD(l.dispositif)} ${bA(l.agent)}</div>
+          <div class="k-card-meta">${bT(l.type)} · ${fmt(l.surface)} m²</div>
+          <div class="k-money"><span class="total">${fmtEur(l.montantTotal)}</span>${r>0?`<span class="reste">Reste ${fmtEur(r)}</span>`:'<span style="color:var(--green);font-size:11px">✓ Payé</span>'}</div>
+        </div>`}).join('')}
+      </div>`;
+    }).join('')}</div>
+  `;
+}
+
+function rFinance(){
+  const tDu=totalDu();
+  const tPaye=totalPaye();
+  const tReste=totalReste();
+  const devisEnvoyes=leads.filter(l=>l.dateDevis).length;
+  const installes=leads.filter(l=>l.dateInstallation).length;
+  const payes=leads.filter(l=>l.datePaiement).length;
+  const resteDetail=leads.filter(l=>reste(l)>0).sort((a,b)=>reste(b)-reste(a));
+  const payesDetail=leads.filter(l=>l.montantPaye>0).sort((a,b)=>b.montantPaye-a.montantPaye);
+
+  document.getElementById('view-finance').innerHTML=`
+    <div class="stats-row">
+      <div class="stat-card highlight"><div class="stat-label">💰 À encaisser au total</div><div class="stat-val" style="color:var(--green)">${fmtEur(tDu)}</div></div>
+      <div class="stat-card highlight"><div class="stat-label">✅ Déjà encaissé</div><div class="stat-val" style="color:var(--green)">${fmtEur(tPaye)}</div><div class="stat-sub">${tDu?Math.round(tPaye/tDu*100):0}% encaissé</div></div>
+      <div class="stat-card warn"><div class="stat-label">⏳ Reste à percevoir</div><div class="stat-val" style="color:var(--amber)">${fmtEur(tReste)}</div><div class="stat-sub">${resteDetail.length} dossier${resteDetail.length>1?'s':''}</div></div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-label">Devis envoyés</div><div class="stat-val">${devisEnvoyes}</div></div>
+      <div class="stat-card"><div class="stat-label">Installés</div><div class="stat-val">${installes}</div></div>
+      <div class="stat-card"><div class="stat-label">Paiements reçus</div><div class="stat-val">${payes}</div></div>
+    </div>
+    <div class="charts-row">
+      <div class="card">
+        <div style="font-size:11px;font-weight:600;color:var(--amber);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px">⏳ Reste à percevoir (${resteDetail.length})</div>
+        ${resteDetail.length===0?`<div class="empty" style="padding:16px">Tout est payé ✓</div>`:resteDetail.map(l=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="openModal(${l.id})"><div><div style="font-weight:600;font-size:13px">${l.nom}</div><div style="font-size:11px;color:var(--text2)">${bS(l.statut)} · Total ${fmtEur(l.montantTotal)}</div></div><div style="text-align:right"><div style="color:var(--amber);font-weight:700;font-size:14px">${fmtEur(reste(l))}</div><div style="font-size:10px;color:var(--text3)">à percevoir</div></div></div>`).join('')}
+      </div>
+      <div class="card">
+        <div style="font-size:11px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px">✅ Déjà encaissé (${payesDetail.length})</div>
+        ${payesDetail.length===0?`<div class="empty" style="padding:16px">Aucun paiement reçu</div>`:payesDetail.map(l=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="openModal(${l.id})"><div><div style="font-weight:600;font-size:13px">${l.nom}</div><div style="font-size:11px;color:var(--text2)">${l.datePaiement||'—'} · ${bA(l.agent)}</div></div><div style="text-align:right"><div style="color:var(--green);font-weight:700;font-size:14px">${fmtEur(l.montantPaye)}</div>${reste(l)>0?`<div style="font-size:10px;color:var(--amber)">reste ${fmtEur(reste(l))}</div>`:'<div style="font-size:10px;color:var(--green)">✓ soldé</div>'}</div></div>`).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function openModal(id){
+  editId=id||null;
+  const l=id?leads.find(x=>x.id===id):{nom:'',tel:'',email:'',siret:'',region:'PACA',surface:1000,hauteur:4,electricite:'oui',equipement:'Aucun',type:'chauffée',dispositif:'AGRI-TH-117',statut:'lead',agent:'Yoss',installateur:'',montantTotal:0,montantPaye:0,dateDevis:'',dateInstallation:'',datePaiement:'',notes:'',date:new Date().toISOString().slice(0,10)};
+  
+  document.getElementById('modal-root').innerHTML=`
+    <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+      <div class="modal">
+        <h3>${id?'✏️ Modifier le lead':'🌱 Nouveau lead'}</h3>
+        
+        <div class="form-section">
+          <div class="form-section-title">📇 Contact agriculteur</div>
+          <div class="form-grid">
+            <div class="fg full"><label>Nom *</label><input id="f-nom" type="text" value="${l.nom}" placeholder="Prénom Nom"></div>
+            <div class="fg"><label>Téléphone</label><input id="f-tel" type="tel" value="${l.tel}" placeholder="06 xx xx xx xx"></div>
+            <div class="fg"><label>Email</label><input id="f-email" type="email" value="${l.email}" placeholder="email@ferme.fr"></div>
+            <div class="fg"><label>N° SIRET</label><input id="f-siret" type="text" value="${l.siret||''}" placeholder="14 chiffres" maxlength="14"></div>
+            <div class="fg"><label>Région</label><select id="f-region">${REGIONS.map(r=>`<option value="${r}" ${(l.region||'')===r?'selected':''}>${r}</option>`).join('')}</select></div>
+          </div>
+        </div>
+        
+        <div class="form-section">
+          <div class="form-section-title">🏠 Serre</div>
+          <div class="form-grid">
+            <div class="fg"><label>Surface (m²) *</label><input id="f-surface" type="number" value="${l.surface}" min="500" step="100"></div>
+            <div class="fg"><label>Hauteur (m)</label><input id="f-hauteur" type="number" value="${l.hauteur||''}" step="0.1" placeholder="ex: 4.5"></div>
+            <div class="fg"><label>Type de serre</label><select id="f-type">${TYPES_SERRE.map(t=>`<option value="${t}" ${l.type===t?'selected':''}>${t.charAt(0).toUpperCase()+t.slice(1)}</option>`).join('')}</select></div>
+            <div class="fg"><label>Électricité ?</label>
+              <div class="radio-group">
+                <div class="radio-opt ${l.electricite==='oui'?'selected':''}" onclick="setElec('oui',this)">⚡ Oui</div>
+                <div class="radio-opt ${l.electricite==='non'?'selected':''}" onclick="setElec('non',this)">✗ Non</div>
+              </div>
+              <input type="hidden" id="f-electricite" value="${l.electricite||'oui'}">
+            </div>
+            <div class="fg full"><label>Déjà équipé de</label><select id="f-equipement">${EQUIPEMENTS.map(e=>`<option value="${e}" ${l.equipement===e?'selected':''}>${e}</option>`).join('')}</select></div>
+          </div>
+        </div>
+        
+        <div class="form-section">
+          <div class="form-section-title">💰 Financier</div>
+          <div class="form-grid">
+            <div class="fg"><label>Dispositif CEE</label><select id="f-dispositif">${DISPOSITIFS.map(d=>`<option value="${d}" ${l.dispositif===d?'selected':''}>${d}</option>`).join('')}</select></div>
+            <div class="fg"><label>Installateur</label><input id="f-installateur" type="text" value="${l.installateur||''}" placeholder="Nom installateur"></div>
+            <div class="fg"><label>💰 Montant total à percevoir (€)</label><input id="f-montantTotal" type="number" value="${l.montantTotal||0}" min="0" step="100" oninput="uMoney()" placeholder="0"></div>
+            <div class="fg"><label>✅ Déjà payé (€)</label><input id="f-montantPaye" type="number" value="${l.montantPaye||0}" min="0" step="100" oninput="uMoney()" placeholder="0"></div>
+            <div class="fg full">
+              <div class="money-summary" id="money-summary">
+                <div class="money-summary-item"><div class="money-summary-label">Total</div><div class="money-summary-val" id="ms-total">—</div></div>
+                <div class="money-summary-item"><div class="money-summary-label">Encaissé</div><div class="money-summary-val" id="ms-paye">—</div></div>
+                <div class="money-summary-item"><div class="money-summary-label">Reste à percevoir</div><div class="money-summary-val warn" id="ms-reste">—</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-section">
+          <div class="form-section-title">📅 Dates clés</div>
+          <div class="dates-grid">
+            <div class="date-card"><label>📝 Devis envoyé</label><input id="f-dateDevis" type="date" value="${l.dateDevis||''}"></div>
+            <div class="date-card"><label>🔧 Installation</label><input id="f-dateInstallation" type="date" value="${l.dateInstallation||''}"></div>
+            <div class="date-card"><label>💸 Paiement reçu</label><input id="f-datePaiement" type="date" value="${l.datePaiement||''}"></div>
+          </div>
+        </div>
+        
+        <div class="form-section">
+          <div class="form-section-title">📊 Suivi</div>
+          <div class="form-grid">
+            <div class="fg"><label>Statut</label><select id="f-statut">${STATUTS.map(s=>`<option value="${s}" ${l.statut===s?'selected':''}>${STATUT_LABELS[s]}</option>`).join('')}</select></div>
+            <div class="fg"><label>Agent</label><select id="f-agent">${AGENTS.map(a=>`<option value="${a}" ${l.agent===a?'selected':''}>${a}</option>`).join('')}</select></div>
+            <div class="fg"><label>Date création</label><input id="f-date" type="date" value="${l.date}"></div>
+            <div class="fg full"><label>Notes</label><textarea id="f-notes">${l.notes||''}</textarea></div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <div>${id?`<button class="btn danger" onclick="delLead(${id})">🗑 Supprimer ce lead</button>`:''}</div>
+          <div class="modal-footer-right">
+            <button class="btn" onclick="closeModal()">Annuler</button>
+            <button class="btn primary" onclick="saveLead()">💾 Enregistrer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  uMoney();
+}
+
+function setElec(val, el){
+  document.getElementById('f-electricite').value=val;
+  el.parentNode.querySelectorAll('.radio-opt').forEach(x=>x.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function uMoney(){
+  const t=parseFloat(document.getElementById('f-montantTotal')?.value||0);
+  const p=parseFloat(document.getElementById('f-montantPaye')?.value||0);
+  const r=Math.max(0,t-p);
+  const tEl=document.getElementById('ms-total');
+  const pEl=document.getElementById('ms-paye');
+  const rEl=document.getElementById('ms-reste');
+  if(!tEl)return;
+  tEl.textContent=fmtEur(t);
+  tEl.className='money-summary-val'+(t===0?' zero':'');
+  pEl.textContent=fmtEur(p);
+  pEl.className='money-summary-val'+(p===0?' zero':'');
+  rEl.textContent=fmtEur(r);
+  rEl.className='money-summary-val'+(r===0?' zero':' warn');
+}
+
+function saveLead(){
+  const nom=document.getElementById('f-nom').value.trim();
+  if(!nom){alert('Le nom est obligatoire');return}
+  const data={
+    nom,
+    tel:document.getElementById('f-tel').value.trim(),
+    email:document.getElementById('f-email').value.trim(),
+    siret:document.getElementById('f-siret').value.trim(),
+    region:document.getElementById('f-region').value,
+    surface:parseFloat(document.getElementById('f-surface').value)||0,
+    hauteur:parseFloat(document.getElementById('f-hauteur').value)||null,
+    electricite:document.getElementById('f-electricite').value,
+    equipement:document.getElementById('f-equipement').value,
+    type:document.getElementById('f-type').value,
+    dispositif:document.getElementById('f-dispositif').value,
+    statut:document.getElementById('f-statut').value,
+    agent:document.getElementById('f-agent').value,
+    installateur:document.getElementById('f-installateur').value.trim(),
+    montantTotal:parseFloat(document.getElementById('f-montantTotal').value)||0,
+    montantPaye:parseFloat(document.getElementById('f-montantPaye').value)||0,
+    dateDevis:document.getElementById('f-dateDevis').value,
+    dateInstallation:document.getElementById('f-dateInstallation').value,
+    datePaiement:document.getElementById('f-datePaiement').value,
+    notes:document.getElementById('f-notes').value.trim(),
+    date:document.getElementById('f-date').value,
+  };
+  if(editId){const i=leads.findIndex(l=>l.id===editId); leads[i]={id:editId,...data}}
+  else{leads.push({id:nextId++,...data})}
+  save(); closeModal(); render();
+  toast(editId?'Lead modifié ✓':'Lead ajouté ✓');
+}
+
+function delLead(id){
+  const l=leads.find(x=>x.id===id);
+  if(!l)return;
+  if(!confirm('⚠️ Supprimer définitivement le lead "'+l.nom+'" ?\n\nCette action est irréversible.'))return;
+  leads=leads.filter(l=>l.id!==id);
+  save(); closeModal(); render();
+  toast('Lead supprimé 🗑');
+}
+
+function closeModal(){document.getElementById('modal-root').innerHTML=''}
+
+function exportCSV(){
+  const h=['ID','Nom','Téléphone','Email','SIRET','Région','Surface m²','Hauteur m','Électricité','Équipement','Type','Dispositif','Statut','Agent','Installateur','Montant Total €','Montant Payé €','Reste €','Date Devis','Date Installation','Date Paiement','Notes','Date création'];
+  const r=leads.map(l=>[l.id,l.nom,l.tel,l.email,l.siret||'',l.region||'',l.surface,l.hauteur||'',l.electricite||'',l.equipement||'',l.type,l.dispositif,STATUT_LABELS[l.statut],l.agent,l.installateur||'',l.montantTotal||0,l.montantPaye||0,reste(l),l.dateDevis||'',l.dateInstallation||'',l.datePaiement||'',l.notes||'',l.date]);
+  const csv=[h,...r].map(x=>x.map(v=>`"${(v||'').toString().replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'}));
+  a.download=`leads_serre_vmc_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  toast('Export CSV téléchargé 📥');
+}
+
+function toast(m){const e=document.createElement('div'); e.className='toast'; e.textContent=m; document.getElementById('toast-root').appendChild(e); setTimeout(()=>e.remove(),2800)}
+
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault(); deferredInstall=e; document.getElementById('install-banner').style.display='flex'});
+function installApp(){if(!deferredInstall)return; deferredInstall.prompt(); deferredInstall.userChoice.then(()=>{document.getElementById('install-banner').style.display='none'; deferredInstall=null})}
+window.addEventListener('appinstalled',()=>{document.getElementById('install-banner').style.display='none'; toast('Appli installée ! 🎉')});
+
+if('serviceWorker' in navigator){
+  const sw="const C='serre-vmc-v3';self.addEventListener('install',e=>e.waitUntil(caches.open(C).then(c=>c.add('/'))));self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).catch(()=>caches.match('/')))));";
+  navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(()=>{});
+}
+
+render();
+</script>
+</body>
+</html>
